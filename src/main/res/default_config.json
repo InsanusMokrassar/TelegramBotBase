@@ -1,0 +1,6 @@
+{
+  "params": {
+    "command": "init"
+  },
+  "paramsObjectClass": "com.github.insanusmokrassar.TelegramBotBase.ConfigModels.CommandConfig"
+}

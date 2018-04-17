@@ -1,0 +1,10 @@
+.idea
+out/*
+*.iml
+target
+
+settings.xml
+
+*.log
+
+src/main/res/database_config.json

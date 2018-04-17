@@ -1,0 +1,25 @@
+{
+  "configs": [
+    {
+      "receiver": {
+        "classPath": "some.full.package.to.receiver",
+        "params": {
+          "key": "some value"
+        },
+        "paramsObjectClass": "full.pat.to.package.of.constructor.of.receiver.argument"
+      },
+      "command": "name of command in system",
+      "mapRules": {//here will be rules to remap in data object of receiver message fields
+        "rule0": [
+          "variant0",
+          "variant1",
+          "variant2"
+        ],
+        "rule1": "single variant",
+        "rule2": {
+          "rule2.1": "variant"
+        }
+      }
+    }
+  ]
+}

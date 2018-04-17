@@ -1,0 +1,59 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<configuration>
+
+    <!-- Common appender -->
+    <appender name="common" class="ch.qos.logback.core.FileAppender">
+        <file>common.log</file>
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <Pattern>%date %level [%thread] %logger{10} [%file:%line] %msg%n</Pattern>
+        </layout>
+    </appender>
+
+    <!--Console appender -->
+    <appender name="sout" class="ch.qos.logback.core.ConsoleAppender">
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <Pattern>%d{HH:mm:ss.SSS} [%thread] %-5level %logger{36} - %msg%n</Pattern>
+        </layout>
+    </appender>
+
+    <!-- Root logger -->
+    <root level="info">
+        <appender-ref ref="common" />
+    </root>
+
+
+    <appender name="ReceiversLogs" class="ch.qos.logback.core.FileAppender">
+        <file>receivers.log</file>
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <Pattern>%date %level [%thread] %logger{10} [%file:%line] %msg%n</Pattern>
+        </layout>
+    </appender>
+
+    <logger name="com.github.insanusmokrassar.ConfigsRemapper.Receiver" level="debug" >
+        <appender-ref ref="ReceiversLogs"/>
+    </logger>
+
+
+    <appender name="requests" class="ch.qos.logback.core.FileAppender">
+        <file>requests.log</file>
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <Pattern>%date %level [%thread] %logger{10} [%file:%line] %msg%n</Pattern>
+        </layout>
+    </appender>
+
+    <logger name="TelegramAsyncExecutions" level="debug" >
+        <appender-ref ref="requests"/>
+    </logger>
+
+
+    <appender name="tables" class="ch.qos.logback.core.FileAppender">
+        <file>tables.log</file>
+        <layout class="ch.qos.logback.classic.PatternLayout">
+            <Pattern>%date %level [%thread] %logger{10} [%file:%line] %msg%n</Pattern>
+        </layout>
+    </appender>
+
+    <logger name="DBTables" level="info">
+        <appender-ref ref="tables"/>
+    </logger>
+</configuration>

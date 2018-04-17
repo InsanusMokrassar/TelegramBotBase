@@ -42,53 +42,77 @@ private class LauncherArgumentsParser(parser: ArgParser) {
     val defaultUserConfigFilename by parser.storing(
             "File name of config for users which will be used bt default if user will have no his own current commands config"
     ).default(defaultConfigFilename)
+    val databaseConfigFile by parser.storing(
+            "File name to database config"
+    ).default(databaseConfigFilename)
 }
 
-private data class DatabaseConfig(
+data class DatabaseConfig(
         val url: String,
         val driver: String,
         val username: String,
         val password: String
 )
 
-class Config {
-    val configs: List<IObject<Any>> = emptyList()
+abstract class LaunchConfigTemplate {
+    open val receiversConfigs: List<IObject<Any>> = emptyList()
+
+    open val onMessage: (updateId: Int, message: Message) -> Unit = { _, _ -> }
+    open val onMessageEdited: (updateId: Int, message: Message) -> Unit = { _, _ -> }
+    open val onChannelPost: (updateId: Int, message: Message) -> Unit = { _, _ -> }
+    open val onChannelPostEdited: (updateId: Int, message: Message) -> Unit = { _, _ -> }
+    open val onInlineQuery: (updateId: Int, query: InlineQuery) -> Unit = { _, _ -> }
+    open val onChosenInlineResult: (updateId: Int, result: ChosenInlineResult) -> Unit = { _, _ -> }
+    open val onCallbackQuery: (updateId: Int, query: CallbackQuery) -> Unit = { _, _ -> }
+    open val onShippingQuery: (updateId: Int, query: ShippingQuery) -> Unit = { _, _ -> }
+    open val onPreCheckoutQuery: (updateId: Int, query: PreCheckoutQuery) -> Unit = { _, _ -> }
+}
+
+private class Config : LaunchConfigTemplate() {
+    override val receiversConfigs: List<IObject<Any>> = emptyList()
     
     val onMessageConfig = InstanceLoader()
-    val onMessage: (updateId: Int, message: Message) -> Unit
+    override val onMessage: (updateId: Int, message: Message) -> Unit
         get() = onMessageConfig.tryToLoad() ?: { _, _ -> }
     
     val onMessageEditedConfig = InstanceLoader()
-    val onMessageEdited: (updateId: Int, message: Message) -> Unit
+    override val onMessageEdited: (updateId: Int, message: Message) -> Unit
         get() = onMessageEditedConfig.tryToLoad() ?: { _, _ -> }
-    
+
+    val onChannelPostConfig = InstanceLoader()
+    override val onChannelPost: (updateId: Int, message: Message) -> Unit
+        get() = onChannelPostConfig.tryToLoad() ?: { _, _ -> }
+
     val onChannelPostEditedConfig = InstanceLoader()
-    val onChannelPostEdited: (updateId: Int, message: Message) -> Unit
+    override val onChannelPostEdited: (updateId: Int, message: Message) -> Unit
         get() = onChannelPostEditedConfig.tryToLoad() ?: { _, _ -> }
     
     val onInlineQueryConfig = InstanceLoader()
-    val onInlineQuery: (updateId: Int, query: InlineQuery) -> Unit
+    override val onInlineQuery: (updateId: Int, query: InlineQuery) -> Unit
         get() = onInlineQueryConfig.tryToLoad() ?: { _, _ -> }
     
     val onChosenInlineResultConfig = InstanceLoader()
-    val onChosenInlineResult: (updateId: Int, result: ChosenInlineResult) -> Unit
+    override val onChosenInlineResult: (updateId: Int, result: ChosenInlineResult) -> Unit
         get() = onChosenInlineResultConfig.tryToLoad() ?: { _, _ -> }
     
     val onCallbackQueryConfig = InstanceLoader()
-    val onCallbackQuery: (updateId: Int, query: CallbackQuery) -> Unit
+    override val onCallbackQuery: (updateId: Int, query: CallbackQuery) -> Unit
         get() = onCallbackQueryConfig.tryToLoad() ?: { _, _ -> }
     
     val onShippingQueryConfig = InstanceLoader()
-    val onShippingQuery: (updateId: Int, query: ShippingQuery) -> Unit
+    override val onShippingQuery: (updateId: Int, query: ShippingQuery) -> Unit
         get() = onShippingQueryConfig.tryToLoad() ?: { _, _ -> }
     
     val onPreCheckoutQueryConfig = InstanceLoader()
-    val onPreCheckoutQuery: (updateId: Int, query: PreCheckoutQuery) -> Unit
+    override val onPreCheckoutQuery: (updateId: Int, query: PreCheckoutQuery) -> Unit
         get() = onPreCheckoutQueryConfig.tryToLoad() ?: { _, _ -> } 
 }
 
-private fun initDatabase(vararg additionalExposedDatabases: Table) {
-    ClassLoader.getSystemResourceAsStream(databaseConfigFilename).readIObject().toObject(DatabaseConfig::class.java).apply {
+private fun initDatabase(
+        config: DatabaseConfig,
+        vararg additionalExposedDatabases: Table
+) {
+    config.apply {
         Database.connect(url, driver, username, password)
     }
 
@@ -108,28 +132,26 @@ fun main(args: Array<String>) {
     } catch (e: ShowHelpException) {
         e.printAndExit()
     }
-    val config = load(parser.configFile).run {
-        toObject(Config::class.java)
-    }
-    val defaultConfig = load(parser.defaultUserConfigFilename)
     init(
-            config,
-            defaultConfig,
+            load(parser.configFile).run { toObject(Config::class.java) },
+            load(parser.defaultUserConfigFilename),
+            load(parser.databaseConfigFile).toObject(DatabaseConfig::class.java),
             parser.token,
             parser.debug
     )
 }
 
 fun init(
-        config: Config,
+        config: LaunchConfigTemplate,
         defaultUserConfig: IObject<Any>,
+        databaseConfig: DatabaseConfig,
         token: String,
         isDebug: Boolean = false,
         vararg additionalExposedDatabases: Table
 ) {
-    initDatabase(*additionalExposedDatabases)
+    initDatabase(databaseConfig, *additionalExposedDatabases)
     val receiversManager = ReceiversManager(
-            *config.configs.toTypedArray()
+            *config.receiversConfigs.toTypedArray()
     )
     val configCallbackQuery = config.onCallbackQuery
     TelegramBot.Builder(token).apply {

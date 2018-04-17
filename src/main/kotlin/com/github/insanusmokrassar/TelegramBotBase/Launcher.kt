@@ -27,6 +27,7 @@ import com.xenomachina.argparser.default
 import kotlinx.coroutines.experimental.async
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils.create
+import org.jetbrains.exposed.sql.Table
 import org.jetbrains.exposed.sql.transactions.transaction
 import java.util.logging.Logger
 
@@ -50,7 +51,7 @@ private data class DatabaseConfig(
         val password: String
 )
 
-private class Config {
+class Config {
     val configs: List<IObject<Any>> = emptyList()
     
     val onMessageConfig = InstanceLoader()
@@ -59,7 +60,7 @@ private class Config {
     
     val onMessageEditedConfig = InstanceLoader()
     val onMessageEdited: (updateId: Int, message: Message) -> Unit
-        get() = onMessageConfig.tryToLoad() ?: { _, _ -> }
+        get() = onMessageEditedConfig.tryToLoad() ?: { _, _ -> }
     
     val onChannelPostEditedConfig = InstanceLoader()
     val onChannelPostEdited: (updateId: Int, message: Message) -> Unit
@@ -86,7 +87,7 @@ private class Config {
         get() = onPreCheckoutQueryConfig.tryToLoad() ?: { _, _ -> } 
 }
 
-private fun initDatabase() {
+private fun initDatabase(vararg additionalExposedDatabases: Table) {
     ClassLoader.getSystemResourceAsStream(databaseConfigFilename).readIObject().toObject(DatabaseConfig::class.java).apply {
         Database.connect(url, driver, username, password)
     }
@@ -95,7 +96,8 @@ private fun initDatabase() {
         create(
                 ChatsConfigs,
                 QueryDatas,
-                ChatsLanguages
+                ChatsLanguages,
+                *additionalExposedDatabases
         )
     }
 }
@@ -106,17 +108,32 @@ fun main(args: Array<String>) {
     } catch (e: ShowHelpException) {
         e.printAndExit()
     }
-    initDatabase()
     val config = load(parser.configFile).run {
         toObject(Config::class.java)
     }
     val defaultConfig = load(parser.defaultUserConfigFilename)
+    init(
+            config,
+            defaultConfig,
+            parser.token,
+            parser.debug
+    )
+}
+
+fun init(
+        config: Config,
+        defaultUserConfig: IObject<Any>,
+        token: String,
+        isDebug: Boolean = false,
+        vararg additionalExposedDatabases: Table
+) {
+    initDatabase(*additionalExposedDatabases)
     val receiversManager = ReceiversManager(
             *config.configs.toTypedArray()
     )
     val configCallbackQuery = config.onCallbackQuery
-    TelegramBot.Builder(parser.token).apply {
-        if (parser.debug) {
+    TelegramBot.Builder(token).apply {
+        if (isDebug) {
             debug()
         }
     }.build().let {
@@ -136,7 +153,7 @@ fun main(args: Array<String>) {
                         handleUpdate(
                                 chatId.toString(),
                                 query.toIObject() + QueryData(query.data().toInt()).config.byteInputStream().readIObject(),
-                                defaultConfig,
+                                defaultUserConfig,
                                 bot,
                                 receiversManager
                         )

@@ -67,7 +67,7 @@ private class DefaultOnUpdateListener(
 }
 
 class Executor(
-        config: LaunchConfigTemplate,
+        config: Config,
         private val defaultUserConfig: IObject<Any>,
         databaseConfig: DatabaseConfig,
         token: String,

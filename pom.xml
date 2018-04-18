@@ -231,7 +231,7 @@
         <dependency>
             <groupId>com.github.insanusmokrassar</groupId>
             <artifactId>ConfigsRemapper</artifactId>
-            <version>0.1-beta</version>
+            <version>0.2b</version>
         </dependency>
 
 

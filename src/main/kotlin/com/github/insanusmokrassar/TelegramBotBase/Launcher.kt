@@ -27,12 +27,8 @@ private class LauncherArgumentsParser(parser: ArgParser) {
     ).default(defaultUserIdRemapFilename)
 }
 
-abstract class LaunchConfigTemplate {
-    open val receiversConfigs: List<IObject<Any>> = emptyList()
-}
-
-private class Config : LaunchConfigTemplate() {
-    override val receiversConfigs: List<IObject<Any>> = emptyList()
+class Config {
+    val receiversConfigs: List<IObject<Any>> = emptyList()
 }
 
 fun main(args: Array<String>) {

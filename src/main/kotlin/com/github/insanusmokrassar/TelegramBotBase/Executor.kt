@@ -9,6 +9,7 @@ import com.github.insanusmokrassar.IObjectK.realisations.SimpleIObject
 import com.github.insanusmokrassar.IObjectK.utils.plus
 import com.github.insanusmokrassar.IObjectKRealisations.readIObject
 import com.github.insanusmokrassar.IObjectKRealisations.toIObject
+import com.github.insanusmokrassar.IObjectKRealisations.toObject
 import com.github.insanusmokrassar.TelegramBotBase.extensions.bot
 import com.github.insanusmokrassar.TelegramBotBase.extensions.executor
 import com.github.insanusmokrassar.TelegramBotBase.models.ChatConfig
@@ -122,7 +123,7 @@ class Executor(
             )
             val resultConfig = (try {
                 ChatConfig(
-                        userIdContainer["userId"]
+                        userIdContainer.toObject(ChatIdContainer::class.java).configChatId.toString()
                 ).run {
                     val currentConfig = this.config ?. byteInputStream() ?.readIObject()
                     this.config = null

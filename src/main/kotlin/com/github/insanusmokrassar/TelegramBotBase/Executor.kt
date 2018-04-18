@@ -116,22 +116,22 @@ class Executor(
     ) {
         try {
             println(config)
-            val userIdContainer = SimpleIObject()
-            userIdRemapRules.remap(
-                    config,
-                    userIdContainer
-            )
-            val resultConfig = (try {
+            val userConfig = (config.toObject(ChatIdContainer::class.java).configChatId ?:let {
+                userIdRemapRules.remap(
+                        config,
+                        config
+                )
+                config.toObject(ChatIdContainer::class.java).configChatId
+            }) ?.let {
                 ChatConfig(
-                        userIdContainer.toObject(ChatIdContainer::class.java).configChatId.toString()
+                        it.toString()
                 ).run {
                     val currentConfig = this.config ?. byteInputStream() ?.readIObject()
                     this.config = null
                     currentConfig
-                } ?: defaultUserConfig
-            } catch (e: Exception) {
-                defaultUserConfig
-            }) + config
+                }
+            } ?: defaultUserConfig
+            val resultConfig = userConfig + config
 
             resultConfig.bot = bot
             resultConfig.executor = this

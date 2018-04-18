@@ -206,7 +206,7 @@
         <dependency>
             <groupId>com.github.insanusmokrassar</groupId>
             <artifactId>IObjectK</artifactId>
-            <version>1.10.4</version>
+            <version>1.10.5</version>
         </dependency>
 
         <dependency>
@@ -231,7 +231,7 @@
         <dependency>
             <groupId>com.github.insanusmokrassar</groupId>
             <artifactId>ConfigsRemapper</artifactId>
-            <version>0.1-beta</version>
+            <version>0.2b</version>
         </dependency>
 
 

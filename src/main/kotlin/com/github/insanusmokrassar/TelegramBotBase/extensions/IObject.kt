@@ -3,6 +3,7 @@ package com.github.insanusmokrassar.TelegramBotBase.extensions
 import com.github.insanusmokrassar.ConfigsRemapper.ReceiversManager
 import com.github.insanusmokrassar.IObjectK.exceptions.ReadException
 import com.github.insanusmokrassar.IObjectK.interfaces.CommonIObject
+import com.github.insanusmokrassar.TelegramBotBase.Executor
 import com.pengrad.telegrambot.TelegramBot
 
 var CommonIObject<String, Any>.bot: TelegramBot?
@@ -17,14 +18,14 @@ var CommonIObject<String, Any>.bot: TelegramBot?
         remove("bot")
     }
 
-var CommonIObject<String, Any>.receiversManager: ReceiversManager?
+var CommonIObject<String, Any>.executor: Executor?
     get() = try {
-        get("receiversManager")
+        get("executor")
     } catch (e: ReadException) {
         null
     }
     set(value) = value ?.let {
-        set("receiversManager", it)
+        set("executor", it)
     } ?:let {
-        remove("receiversManager")
+        remove("executor")
     }

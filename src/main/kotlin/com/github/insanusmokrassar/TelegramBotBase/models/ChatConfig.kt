@@ -29,7 +29,7 @@ class ChatConfig private constructor(
             field = value
         }
 
-    constructor(
+    internal constructor(
             userId: String
     ) : this(
             transaction {

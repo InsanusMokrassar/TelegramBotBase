@@ -1,5 +1,13 @@
 {
   "configChatId": [
-
+    "message/from/id",
+    "edited_message/from/id",
+    "channel_post/from/id",
+    "edited_channel_post/from/id",
+    "inline_query/from/id",
+    "chosen_inline_result/from/id",
+    "callback_query/from/id",
+    "shipping_query/from/id",
+    "pre_checkout_query/from/id"
   ]
 }

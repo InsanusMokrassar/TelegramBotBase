@@ -157,7 +157,9 @@ class Executor(
 
     private fun tryToHandleQueryCallback(message: IObject<Any>) {
         handleUpdate(
-                message + QueryData(message.get<IObject<Any>>("callbackQuery").get<String>("data").toInt()).toIObject()
+                message + QueryData(
+                        message.get<IObject<Any>>("callback_query").get<String>("data").toInt()
+                ).config.byteInputStream().readIObject()
         )
     }
 }

@@ -84,7 +84,6 @@ class Executor(
         }
     }.build().also {
         bot ->
-        val onCallbackQuery = DefaultOnUpdateListener(this, "onCallbackQuery")
         BotIncomeMessagesListener(
                 bot,
                 DefaultOnUpdateListener(this, "onMessage"),
@@ -93,15 +92,7 @@ class Executor(
                 DefaultOnUpdateListener(this, "onChannelPostEdited"),
                 DefaultOnUpdateListener(this, "onInlineQuery"),
                 DefaultOnUpdateListener(this, "onChosenInlineResult"),
-                {
-                    updateId, message ->
-                    try {
-                        tryToHandleQueryCallback(message)
-                    } catch (e: NoSuchElementException) {
-                        println("Can't find query number for: $message")
-                    }
-                    onCallbackQuery(updateId, message)
-                },
+                DefaultOnUpdateListener(this, "onCallbackQuery"),
                 DefaultOnUpdateListener(this, "onShippingQuery"),
                 DefaultOnUpdateListener(this, "onPreCheckoutQuery")
         )
@@ -131,7 +122,7 @@ class Executor(
                     currentConfig
                 }
             } ?: defaultUserConfig
-            val resultConfig = userConfig + config
+            val resultConfig = tryToAddQueryCallback(config + userConfig)
 
             resultConfig.bot = bot
             resultConfig.executor = this
@@ -155,11 +146,13 @@ class Executor(
         }
     }
 
-    private fun tryToHandleQueryCallback(message: IObject<Any>) {
-        handleUpdate(
-                message + QueryData(
-                        message.get<IObject<Any>>("callback_query").get<String>("data").toInt()
-                ).config.byteInputStream().readIObject()
-        )
+    private fun tryToAddQueryCallback(message: CommonIObject<String, Any>): CommonIObject<String, Any> {
+        return try {
+            message + QueryData(
+                    message.get<IObject<Any>>("callback_query").get<String>("data").toInt()
+            ).config.byteInputStream().readIObject()
+        } catch (e: Exception) {
+            message
+        }
     }
 }

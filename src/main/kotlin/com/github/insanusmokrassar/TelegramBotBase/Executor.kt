@@ -2,6 +2,7 @@ package com.github.insanusmokrassar.TelegramBotBase
 
 import com.github.insanusmokrassar.ConfigsRemapper.ReceiversManager
 import com.github.insanusmokrassar.IObjectK.exceptions.ReadException
+import com.github.insanusmokrassar.IObjectK.extensions.remap
 import com.github.insanusmokrassar.IObjectK.interfaces.CommonIObject
 import com.github.insanusmokrassar.IObjectK.interfaces.IObject
 import com.github.insanusmokrassar.IObjectK.realisations.SimpleIObject
@@ -16,6 +17,7 @@ import com.github.insanusmokrassar.TelegramBotBase.tables.ChatsConfigs
 import com.github.insanusmokrassar.TelegramBotBase.tables.ChatsLanguages
 import com.github.insanusmokrassar.TelegramBotBase.tables.QueryDatas
 import com.github.insanusmokrassar.TelegramBotBase.utils.BotIncomeMessagesListener
+import com.github.insanusmokrassar.TelegramBotBase.utils.UpdateCallback
 import com.pengrad.telegrambot.TelegramBot
 import kotlinx.coroutines.experimental.async
 import org.jetbrains.exposed.sql.Database
@@ -52,47 +54,56 @@ private fun CommonIObject<String, Any>.asIObject(): IObject<Any> {
     }
 }
 
+private class DefaultOnUpdateListener(
+        private val executor: Executor,
+        command: String
+) : UpdateCallback {
+    private val commandConfig = CommandConfig(command).toIObject()
+    override fun invoke(updateId: Int, message: IObject<Any>) {
+        executor.handleUpdate(
+                message + commandConfig
+        )
+    }
+}
+
 class Executor(
         config: LaunchConfigTemplate,
         private val defaultUserConfig: IObject<Any>,
         databaseConfig: DatabaseConfig,
         token: String,
+        private val userIdRemapRules: IObject<Any>,
         isDebug: Boolean = false,
         vararg additionalExposedDatabases: Table
 ) {
     private val receiversManager = ReceiversManager(
             *config.receiversConfigs.toTypedArray()
     )
-    private val configCallbackQuery = config.onCallbackQuery
     private val bot = TelegramBot.Builder(token).apply {
         if (isDebug) {
             debug()
         }
     }.build().also {
         bot ->
+        val onCallbackQuery = DefaultOnUpdateListener(this, "onCallbackQuery")
         BotIncomeMessagesListener(
                 bot,
-                config.onMessage,
-                config.onMessageEdited,
-                config.onChannelPostEdited,
-                config.onChannelPostEdited,
-                config.onInlineQuery,
-                config.onChosenInlineResult,
+                DefaultOnUpdateListener(this, "onMessage"),
+                DefaultOnUpdateListener(this, "onMessageEdited"),
+                DefaultOnUpdateListener(this, "onChannelPost"),
+                DefaultOnUpdateListener(this, "onChannelPostEdited"),
+                DefaultOnUpdateListener(this, "onInlineQuery"),
+                DefaultOnUpdateListener(this, "onChosenInlineResult"),
                 {
-                    updateId, query ->
-                    val chatId = query.message().chat().id()
+                    updateId, message ->
                     try {
-                        handleUpdate(
-                                chatId.toString(),
-                                query.toIObject() + QueryData(query.data().toInt()).config.byteInputStream().readIObject()
-                        )
+                        tryToHandleQueryCallback(message)
                     } catch (e: NoSuchElementException) {
-                        println("Can't find query number for: $query")
+                        println("Can't find query number for: $message")
                     }
-                    configCallbackQuery(updateId, query)
+                    onCallbackQuery(updateId, message)
                 },
-                config.onShippingQuery,
-                config.onPreCheckoutQuery
+                DefaultOnUpdateListener(this, "onShippingQuery"),
+                DefaultOnUpdateListener(this, "onPreCheckoutQuery")
         )
     }
 
@@ -101,18 +112,27 @@ class Executor(
     }
 
     fun handleUpdate(
-            chatId: String,
             config: CommonIObject<String, Any>
     ) {
         async {
             try {
                 println(config)
-                val userConfig = ChatConfig(
-                        chatId
+                val userIdContainer = SimpleIObject()
+                userIdRemapRules.remap(
+                        config,
+                        userIdContainer
                 )
-                val resultConfig = (userConfig.config ?. byteInputStream() ?.readIObject() ?: defaultUserConfig) + config
-
-                userConfig.config = null
+                val resultConfig = (try {
+                    ChatConfig(
+                            userIdContainer["userId"]
+                    ).run {
+                        val currentConfig = this.config ?. byteInputStream() ?.readIObject()
+                        this.config = null
+                        currentConfig
+                    } ?: defaultUserConfig
+                } catch (e: Exception) {
+                    defaultUserConfig
+                }) + config
 
                 resultConfig.bot = bot
                 resultConfig.receiversManager = receiversManager
@@ -135,5 +155,11 @@ class Executor(
                 )
             }
         }
+    }
+
+    private fun tryToHandleQueryCallback(message: IObject<Any>) {
+        handleUpdate(
+                message + QueryData(message.get<IObject<Any>>("callbackQuery").get<String>("data").toInt()).toIObject()
+        )
     }
 }

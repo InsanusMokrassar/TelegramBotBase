@@ -39,9 +39,9 @@ fun main(args: Array<String>) {
     }
     val executor = Executor(
             load(parser.configFile).run { toObject(Config::class.java) },
+            parser.token,
             load(parser.defaultUserConfigFilename),
             load(parser.databaseConfigFile).toObject(DatabaseConfig::class.java),
-            parser.token,
             load(parser.userIdRemapFile),
             parser.debug
     )

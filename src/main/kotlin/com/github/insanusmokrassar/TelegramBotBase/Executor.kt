@@ -19,6 +19,7 @@ import com.github.insanusmokrassar.TelegramBotBase.tables.ChatsLanguages
 import com.github.insanusmokrassar.TelegramBotBase.tables.QueryDatas
 import com.github.insanusmokrassar.TelegramBotBase.utils.BotIncomeMessagesListener
 import com.github.insanusmokrassar.TelegramBotBase.utils.UpdateCallback
+import com.github.insanusmokrassar.TelegramBotBase.utils.load
 import com.pengrad.telegrambot.TelegramBot
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
@@ -68,10 +69,10 @@ private class DefaultOnUpdateListener(
 
 class Executor(
         config: Config,
-        private val defaultUserConfig: IObject<Any>,
-        databaseConfig: DatabaseConfig,
         token: String,
-        private val userIdRemapRules: IObject<Any>,
+        private val defaultUserConfig: IObject<Any> = SimpleIObject(),
+        databaseConfig: DatabaseConfig = load(databaseConfigFilename).toObject(DatabaseConfig::class.java),
+        private val userIdRemapRules: IObject<Any> = load(defaultUserIdRemapFilename),
         isDebug: Boolean = false,
         vararg additionalExposedDatabases: Table
 ) {

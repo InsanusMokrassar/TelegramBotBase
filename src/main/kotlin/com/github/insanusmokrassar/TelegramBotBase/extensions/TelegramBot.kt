@@ -27,7 +27,7 @@ private class DefaultCallback<T: BaseRequest<T, R>, R: BaseResponse>(
         if (response.isOk) {
             onResponseCallback ?. invoke(request, response)
         } else {
-            onFailure(request, IOException("Can't get response - is not ok"))
+            onFailure(request, IOException(response.description()))
         }
     }
 }

@@ -1,5 +1,6 @@
 package com.github.insanusmokrassar.TelegramBotBase.extensions
 
+import com.github.insanusmokrassar.TelegramBotBase.models.ChatAdmins
 import com.pengrad.telegrambot.Callback
 import com.pengrad.telegrambot.TelegramBot
 import com.pengrad.telegrambot.model.ChatMember
@@ -90,6 +91,13 @@ fun TelegramBot.checkUserIsAdmin(
             ),
             onResponse = {
                 _,  res ->
+                ChatAdmins(
+                        channelChatId.toLong()
+                ).updateAdmins(
+                        res.administrators().map {
+                            it.user().id().toLong()
+                        }
+                )
                 res.administrators().firstOrNull {
                     it.user().id() == userId
                 } ?.let {

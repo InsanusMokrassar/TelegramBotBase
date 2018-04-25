@@ -37,7 +37,7 @@ private fun initDatabase(
     }
 
     transaction {
-        SchemaUtils.create(
+        SchemaUtils.createMissingTablesAndColumns(
                 ChatsConfigs,
                 QueryDatas,
                 ChatsLanguages,

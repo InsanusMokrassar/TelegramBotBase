@@ -14,6 +14,7 @@ import com.github.insanusmokrassar.TelegramBotBase.extensions.bot
 import com.github.insanusmokrassar.TelegramBotBase.extensions.executor
 import com.github.insanusmokrassar.TelegramBotBase.models.ChatConfig
 import com.github.insanusmokrassar.TelegramBotBase.models.QueryData
+import com.github.insanusmokrassar.TelegramBotBase.tables.ChatsAdmins
 import com.github.insanusmokrassar.TelegramBotBase.tables.ChatsConfigs
 import com.github.insanusmokrassar.TelegramBotBase.tables.ChatsLanguages
 import com.github.insanusmokrassar.TelegramBotBase.tables.QueryDatas
@@ -41,6 +42,7 @@ private fun initDatabase(
                 ChatsConfigs,
                 QueryDatas,
                 ChatsLanguages,
+                ChatsAdmins,
                 *additionalExposedDatabases
         )
     }

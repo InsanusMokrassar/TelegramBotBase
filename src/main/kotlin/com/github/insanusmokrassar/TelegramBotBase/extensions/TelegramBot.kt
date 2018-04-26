@@ -8,6 +8,8 @@ import com.pengrad.telegrambot.request.AnswerCallbackQuery
 import com.pengrad.telegrambot.request.BaseRequest
 import com.pengrad.telegrambot.request.GetChatAdministrators
 import com.pengrad.telegrambot.response.BaseResponse
+import com.pengrad.telegrambot.response.GetChatAdministratorsResponse
+import kotlinx.coroutines.experimental.async
 import org.slf4j.LoggerFactory
 import java.io.IOException
 import java.util.*
@@ -66,6 +68,22 @@ typealias ChatMemberCallback = (ChatMember) -> Unit
 
 private val adminsCache: MutableMap<String, MutableMap<Int, ChatMember>> = HashMap()
 
+fun TelegramBot.updateAdmins(channelChatId: Long): List<ChatMember> {
+    return execute(
+            GetChatAdministrators(
+                    channelChatId
+            )
+    ).apply {
+        ChatAdmins(
+                channelChatId
+        ).updateAdmins(
+                administrators().map {
+                    it.user().id().toLong()
+                }
+        )
+    }.administrators()
+}
+
 fun TelegramBot.checkUserIsAdmin(
         userId: Int,
         channelChatId: String,
@@ -85,42 +103,30 @@ fun TelegramBot.checkUserIsAdmin(
             return
         }
     }
-    executeAsync(
-            GetChatAdministrators(
-                    channelChatId
-            ),
-            onResponse = {
-                _,  res ->
-                ChatAdmins(
-                        channelChatId.toLong()
-                ).updateAdmins(
-                        res.administrators().map {
-                            it.user().id().toLong()
-                        }
-                )
-                res.administrators().firstOrNull {
-                    it.user().id() == userId
-                } ?.let {
-                    adminsCache[channelChatId] ?.set (userId, it)
-                    isAdminCallback(it)
-                }
+    async {
+        updateAdmins(channelChatId.toLong()).let {
+            administrators ->
+            administrators.firstOrNull {
+                it.user().id() == userId
+            } ?.let {
+                adminsCache[channelChatId] ?.set (userId, it)
+                isAdminCallback(it)
             }
-    )
+        }
+    }
 }
 
 fun TelegramBot.chatCreator(
-        channelChatId: String,
+        channelChatId: Long,
         creatorCallback: ChatMemberCallback
 ) {
-    executeAsync(
-            GetChatAdministrators(
-                    channelChatId
-            ),
-            onResponse = {
-                _, r ->
-                r.administrators().firstOrNull {
-                    it.status() == ChatMember.Status.creator
-                } ?.let(creatorCallback)
-            }
-    )
+    async {
+        updateAdmins(
+                channelChatId
+        ).let {
+            it.firstOrNull {
+                it.status() == ChatMember.Status.creator
+            } ?.let(creatorCallback)
+        }
+    }
 }

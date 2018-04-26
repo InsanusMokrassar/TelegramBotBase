@@ -22,6 +22,7 @@ import com.github.insanusmokrassar.TelegramBotBase.utils.BotIncomeMessagesListen
 import com.github.insanusmokrassar.TelegramBotBase.utils.UpdateCallback
 import com.github.insanusmokrassar.TelegramBotBase.utils.load
 import com.pengrad.telegrambot.TelegramBot
+import kotlinx.coroutines.experimental.Deferred
 import kotlinx.coroutines.experimental.async
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils

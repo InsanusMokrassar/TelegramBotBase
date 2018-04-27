@@ -8,7 +8,6 @@ import com.pengrad.telegrambot.request.AnswerCallbackQuery
 import com.pengrad.telegrambot.request.BaseRequest
 import com.pengrad.telegrambot.request.GetChatAdministrators
 import com.pengrad.telegrambot.response.BaseResponse
-import com.pengrad.telegrambot.response.GetChatAdministratorsResponse
 import kotlinx.coroutines.experimental.async
 import org.slf4j.LoggerFactory
 import java.io.IOException
@@ -66,8 +65,6 @@ fun TelegramBot.queryAnswer(
 
 typealias ChatMemberCallback = (ChatMember) -> Unit
 
-private val adminsCache: MutableMap<String, MutableMap<Int, ChatMember>> = HashMap()
-
 fun TelegramBot.updateAdmins(channelChatId: Long): List<ChatMember> {
     return execute(
             GetChatAdministrators(
@@ -86,30 +83,15 @@ fun TelegramBot.updateAdmins(channelChatId: Long): List<ChatMember> {
 
 fun TelegramBot.checkUserIsAdmin(
         userId: Int,
-        channelChatId: String,
+        channelId: Long,
         isAdminCallback: ChatMemberCallback
 ) {
-    (adminsCache[channelChatId] ?: let {
-        WeakHashMap<Int, ChatMember>().also {
-            adminsCache[channelChatId] = it
-        }
-    }).let {
-        it[userId] ?.let {
-            try {
-                isAdminCallback(it)
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-            return
-        }
-    }
     async {
-        updateAdmins(channelChatId.toLong()).let {
+        updateAdmins(channelId).let {
             administrators ->
             administrators.firstOrNull {
                 it.user().id() == userId
             } ?.let {
-                adminsCache[channelChatId] ?.set (userId, it)
                 isAdminCallback(it)
             }
         }
@@ -117,12 +99,12 @@ fun TelegramBot.checkUserIsAdmin(
 }
 
 fun TelegramBot.chatCreator(
-        channelChatId: Long,
+        channelId: Long,
         creatorCallback: ChatMemberCallback
 ) {
     async {
         updateAdmins(
-                channelChatId
+                channelId
         ).let {
             it.firstOrNull {
                 it.status() == ChatMember.Status.creator

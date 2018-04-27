@@ -4,14 +4,13 @@ import com.github.insanusmokrassar.TelegramBotBase.models.ChatAdmins
 import com.pengrad.telegrambot.Callback
 import com.pengrad.telegrambot.TelegramBot
 import com.pengrad.telegrambot.model.ChatMember
-import com.pengrad.telegrambot.request.AnswerCallbackQuery
-import com.pengrad.telegrambot.request.BaseRequest
-import com.pengrad.telegrambot.request.GetChatAdministrators
+import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup
+import com.pengrad.telegrambot.model.request.ParseMode
+import com.pengrad.telegrambot.request.*
 import com.pengrad.telegrambot.response.BaseResponse
 import kotlinx.coroutines.experimental.async
 import org.slf4j.LoggerFactory
 import java.io.IOException
-import java.util.*
 
 private val logger = LoggerFactory.getLogger("TelegramAsyncExecutions")
 
@@ -112,3 +111,78 @@ fun TelegramBot.chatCreator(
         }
     }
 }
+
+fun TelegramBot.sendEditExistOrNew(
+        chatId: Long,
+        messageId: Int? = null,
+        text: String? = null,
+        markup: InlineKeyboardMarkup = InlineKeyboardMarkup(),
+        success: (() -> Unit)? = null
+) {
+    messageId ?.let {
+        text ?.let {
+            executeAsync(
+                    EditMessageText(
+                            chatId, messageId, text
+                    ).replyMarkup(markup).parseMode(ParseMode.Markdown),
+                    onFailure = {
+                        _, e ->
+                        if (e ?. message ?. contains("message is not modified") == true) {
+                            sendEditExistOrNew(
+                                    chatId, messageId, null, markup, success
+                            )
+                        } else {
+                            sendEditExistOrNew(
+                                    chatId,
+                                    null,
+                                    text,
+                                    markup,
+                                    success
+                            )
+                        }
+                    },
+                    onResponse = {
+                        req, res ->
+                        success ?. invoke()
+                    }
+            )
+        } ?:let {
+            executeAsync(
+                    EditMessageReplyMarkup(
+                            chatId, messageId
+                    ).replyMarkup(markup),
+                    onFailure = {
+                        _, e ->
+                        if (e ?. message ?. contains("message is not modified") == true) {
+                            success ?. invoke()
+                        } else {
+                            sendEditExistOrNew(
+                                    chatId,
+                                    null,
+                                    text,
+                                    markup,
+                                    success
+                            )
+                        }
+                    },
+                    onResponse = {
+                        req, res ->
+                        success ?. invoke()
+                    }
+            )
+        }
+    } ?:let {
+        text ?.let {
+            executeAsync(
+                    SendMessage(
+                            chatId, text
+                    ).replyMarkup(markup).parseMode(ParseMode.Markdown),
+                    onResponse = {
+                        req, res ->
+                        success ?. invoke()
+                    }
+            )
+        }
+    }
+}
+

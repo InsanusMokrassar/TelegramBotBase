@@ -4,15 +4,13 @@ import com.github.insanusmokrassar.TelegramBotBase.models.ChatAdmins
 import com.pengrad.telegrambot.Callback
 import com.pengrad.telegrambot.TelegramBot
 import com.pengrad.telegrambot.model.ChatMember
-import com.pengrad.telegrambot.request.AnswerCallbackQuery
-import com.pengrad.telegrambot.request.BaseRequest
-import com.pengrad.telegrambot.request.GetChatAdministrators
+import com.pengrad.telegrambot.model.request.InlineKeyboardMarkup
+import com.pengrad.telegrambot.model.request.ParseMode
+import com.pengrad.telegrambot.request.*
 import com.pengrad.telegrambot.response.BaseResponse
-import com.pengrad.telegrambot.response.GetChatAdministratorsResponse
 import kotlinx.coroutines.experimental.async
 import org.slf4j.LoggerFactory
 import java.io.IOException
-import java.util.*
 
 private val logger = LoggerFactory.getLogger("TelegramAsyncExecutions")
 
@@ -66,8 +64,6 @@ fun TelegramBot.queryAnswer(
 
 typealias ChatMemberCallback = (ChatMember) -> Unit
 
-private val adminsCache: MutableMap<String, MutableMap<Int, ChatMember>> = HashMap()
-
 fun TelegramBot.updateAdmins(channelChatId: Long): List<ChatMember> {
     return execute(
             GetChatAdministrators(
@@ -86,30 +82,15 @@ fun TelegramBot.updateAdmins(channelChatId: Long): List<ChatMember> {
 
 fun TelegramBot.checkUserIsAdmin(
         userId: Int,
-        channelChatId: String,
+        channelId: Long,
         isAdminCallback: ChatMemberCallback
 ) {
-    (adminsCache[channelChatId] ?: let {
-        WeakHashMap<Int, ChatMember>().also {
-            adminsCache[channelChatId] = it
-        }
-    }).let {
-        it[userId] ?.let {
-            try {
-                isAdminCallback(it)
-            } catch (e: Exception) {
-                e.printStackTrace()
-            }
-            return
-        }
-    }
     async {
-        updateAdmins(channelChatId.toLong()).let {
+        updateAdmins(channelId).let {
             administrators ->
             administrators.firstOrNull {
                 it.user().id() == userId
             } ?.let {
-                adminsCache[channelChatId] ?.set (userId, it)
                 isAdminCallback(it)
             }
         }
@@ -117,12 +98,12 @@ fun TelegramBot.checkUserIsAdmin(
 }
 
 fun TelegramBot.chatCreator(
-        channelChatId: Long,
+        channelId: Long,
         creatorCallback: ChatMemberCallback
 ) {
     async {
         updateAdmins(
-                channelChatId
+                channelId
         ).let {
             it.firstOrNull {
                 it.status() == ChatMember.Status.creator
@@ -130,3 +111,78 @@ fun TelegramBot.chatCreator(
         }
     }
 }
+
+fun TelegramBot.sendEditExistOrNew(
+        chatId: Long,
+        messageId: Int? = null,
+        text: String? = null,
+        markup: InlineKeyboardMarkup = InlineKeyboardMarkup(),
+        success: (() -> Unit)? = null
+) {
+    messageId ?.let {
+        text ?.let {
+            executeAsync(
+                    EditMessageText(
+                            chatId, messageId, text
+                    ).replyMarkup(markup).parseMode(ParseMode.Markdown),
+                    onFailure = {
+                        _, e ->
+                        if (e ?. message ?. contains("message is not modified") == true) {
+                            sendEditExistOrNew(
+                                    chatId, messageId, null, markup, success
+                            )
+                        } else {
+                            sendEditExistOrNew(
+                                    chatId,
+                                    null,
+                                    text,
+                                    markup,
+                                    success
+                            )
+                        }
+                    },
+                    onResponse = {
+                        req, res ->
+                        success ?. invoke()
+                    }
+            )
+        } ?:let {
+            executeAsync(
+                    EditMessageReplyMarkup(
+                            chatId, messageId
+                    ).replyMarkup(markup),
+                    onFailure = {
+                        _, e ->
+                        if (e ?. message ?. contains("message is not modified") == true) {
+                            success ?. invoke()
+                        } else {
+                            sendEditExistOrNew(
+                                    chatId,
+                                    null,
+                                    text,
+                                    markup,
+                                    success
+                            )
+                        }
+                    },
+                    onResponse = {
+                        req, res ->
+                        success ?. invoke()
+                    }
+            )
+        }
+    } ?:let {
+        text ?.let {
+            executeAsync(
+                    SendMessage(
+                            chatId, text
+                    ).replyMarkup(markup).parseMode(ParseMode.Markdown),
+                    onResponse = {
+                        req, res ->
+                        success ?. invoke()
+                    }
+            )
+        }
+    }
+}
+

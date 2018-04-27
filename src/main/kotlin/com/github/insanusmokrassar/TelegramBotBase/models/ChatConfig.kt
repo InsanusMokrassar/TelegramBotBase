@@ -7,9 +7,9 @@ import org.jetbrains.exposed.sql.transactions.transaction
 import org.jetbrains.exposed.sql.update
 import java.util.*
 
-private val cache = WeakHashMap<String, ChatConfig>()
+private val cache = WeakHashMap<Long, ChatConfig>()
 
-fun getUserConfig(userId: String): ChatConfig {
+fun getUserConfig(userId: Long): ChatConfig {
     return cache[userId] ?: ChatConfig(userId).apply {
         cache[userId] = this
     }
@@ -17,7 +17,7 @@ fun getUserConfig(userId: String): ChatConfig {
 
 class ChatConfig private constructor(
         config: String?,
-        val chatId: String
+        val chatId: Long
 ) {
     var config: String? = config
         set(value) {
@@ -30,7 +30,7 @@ class ChatConfig private constructor(
         }
 
     internal constructor(
-            userId: String
+            userId: Long
     ) : this(
             transaction {
                 try {

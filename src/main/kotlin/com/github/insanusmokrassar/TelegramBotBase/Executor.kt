@@ -125,7 +125,7 @@ class Executor(
                 config.toObject(ChatIdContainer::class.java).configChatId
             }) ?.let {
                 ChatConfig(
-                        it.toString()
+                        it
                 ).run {
                     val currentConfig = this.config ?. byteInputStream() ?.readIObject()
                     this.config = null

@@ -74,13 +74,19 @@ fun TelegramBot.updateAdmins(channelChatId: Long): List<ChatMember> {
                     channelChatId
             )
     ).apply {
-        ChatAdmins(
-                channelChatId
-        ).updateAdmins(
-                administrators().map {
-                    it.user().id().toLong()
-                }
-        )
+        if (isOk) {
+            ChatAdmins(
+                    channelChatId
+            ).updateAdmins(
+                    administrators().map {
+                        it.user().id().toLong()
+                    }
+            )
+        } else {
+            updateAdmins(
+                    channelChatId
+            )
+        }
     }.administrators()
 }
 

@@ -1,0 +1,12 @@
+{
+  "receiver": {
+    "classPath": "path.to.extender",
+    "params": {
+      "delayTime": 1200000
+    },
+    "paramsObjectClass": "com.github.insanusmokrassar.TelegramBotBase.receivers.ChatsAdminsUpdateLauncherReceiverInitConfig"
+  },
+  "commands": [
+    "onInit"
+  ]
+}

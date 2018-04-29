@@ -78,11 +78,10 @@ class Executor(
         databaseConfig: DatabaseConfig = load(databaseConfigFilename).toObject(DatabaseConfig::class.java),
         private val userIdRemapRules: IObject<Any> = load(defaultUserIdRemapFilename),
         isDebug: Boolean = false,
+        onBotInit: ((TelegramBot) -> Unit)? = null,
+        baseHandleIObject: IObject<Any>? = null,
         vararg additionalExposedDatabases: Table
 ) {
-    private val receiversManager = ReceiversManager(
-            *config.receiversConfigs.toTypedArray()
-    )
     private val bot = TelegramBot.Builder(token).apply {
         if (isDebug) {
             debug()
@@ -101,7 +100,16 @@ class Executor(
                 DefaultOnUpdateListener(this, "onShippingQuery"),
                 DefaultOnUpdateListener(this, "onPreCheckoutQuery")
         )
+        onBotInit ?. invoke(bot)
     }
+
+    private val receiversManager = ReceiversManager(
+            *config.receiversConfigs.toTypedArray(),
+            (baseHandleIObject ?: SimpleIObject()).apply {
+                bot = this@Executor.bot
+                executor = this@Executor
+            }
+    )
 
     init {
         initDatabase(databaseConfig, *additionalExposedDatabases)
@@ -127,15 +135,13 @@ class Executor(
                 ChatConfig(
                         it
                 ).run {
-                    val currentConfig = this.config ?. byteInputStream() ?.readIObject()
+                    val currentConfig = this.config ?. readIObject()
                     this.config = null
                     currentConfig
                 }
             } ?: defaultUserConfig
             val resultConfig = tryToAddQueryCallback(config + userConfig)
 
-            resultConfig.bot = bot
-            resultConfig.executor = this
             val command: String = try {
                 resultConfig["command"]
             } catch (e: ReadException) {

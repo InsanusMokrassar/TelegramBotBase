@@ -104,11 +104,11 @@ class Executor(
     }
 
     private val receiversManager = ReceiversManager(
-            *config.receiversConfigs.toTypedArray(),
-            (baseHandleIObject ?: SimpleIObject()).apply {
+            handlingMixinObject = (baseHandleIObject ?: SimpleIObject()).apply {
                 bot = this@Executor.bot
                 executor = this@Executor
-            }
+            },
+            configs = *config.receiversConfigs.toTypedArray()
     )
 
     init {

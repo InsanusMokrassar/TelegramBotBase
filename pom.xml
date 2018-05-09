@@ -5,7 +5,7 @@
     
     <groupId>com.github.insanusmokrassar</groupId>
     <artifactId>TelegramBotBase</artifactId>
-    <version>0.7</version>
+    <version>0.7b</version>
     <packaging>jar</packaging>
     
     <name>${project.artifactId}</name>
@@ -145,7 +145,7 @@
                 </execution>
               </executions>
             </plugin>
-<!--            <plugin>
+            <plugin>
               <groupId>org.apache.maven.plugins</groupId>
               <artifactId>maven-gpg-plugin</artifactId>
               <version>${gpg.version}</version>
@@ -158,7 +158,7 @@
                   </goals>
                 </execution>
               </executions>
-            </plugin>-->
+            </plugin>
         </plugins>
     </build>
 

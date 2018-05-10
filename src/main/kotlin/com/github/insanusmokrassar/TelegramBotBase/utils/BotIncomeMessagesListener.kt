@@ -80,7 +80,7 @@ class BotIncomeMessagesListener(
                     }
                     groups.remove(current.key)
                 }
-                read
+                UpdatesListener.CONFIRMED_UPDATES_ALL
             }
         } ?:let {
             bot.setUpdatesListener {
@@ -116,7 +116,7 @@ class BotIncomeMessagesListener(
                     }
                     read++
                 }
-                read
+                UpdatesListener.CONFIRMED_UPDATES_ALL
             }
         }
     }

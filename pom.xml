@@ -5,7 +5,7 @@
     
     <groupId>com.github.insanusmokrassar</groupId>
     <artifactId>TelegramBotBase</artifactId>
-    <version>0.7b</version>
+    <version>0.7.1b</version>
     <packaging>jar</packaging>
     
     <name>${project.artifactId}</name>
@@ -144,6 +144,26 @@
                   </configuration>
                 </execution>
               </executions>
+            </plugin>
+
+            <plugin>
+                <groupId>org.jetbrains.dokka</groupId>
+                <artifactId>dokka-maven-plugin</artifactId>
+                <version>${dokka.version}</version>
+                <executions>
+                    <execution>
+                        <phase>package</phase>
+                        <goals>
+                            <goal>dokka</goal>
+                            <goal>javadocJar</goal>
+                        </goals>
+                    </execution>
+                </executions>
+                <configuration>
+                    <sourceDirectories>
+                        <dir>${project.build.sourceDirectory}</dir>
+                    </sourceDirectories>
+                </configuration>
             </plugin>
             <plugin>
               <groupId>org.apache.maven.plugins</groupId>

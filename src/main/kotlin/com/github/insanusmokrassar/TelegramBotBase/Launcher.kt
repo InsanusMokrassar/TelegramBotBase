@@ -27,9 +27,9 @@ private class LauncherArgumentsParser(parser: ArgParser) {
     ).default(defaultUserIdRemapFilename)
 }
 
-class Config {
+open class Config(
     val receiversConfigs: List<IObject<Any>> = emptyList()
-}
+)
 
 fun main(args: Array<String>) {
     val parser = try {

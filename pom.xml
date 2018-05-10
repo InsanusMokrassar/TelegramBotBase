@@ -5,7 +5,7 @@
     
     <groupId>com.github.insanusmokrassar</groupId>
     <artifactId>TelegramBotBase</artifactId>
-    <version>0.7b</version>
+    <version>0.7.1b</version>
     <packaging>jar</packaging>
     
     <name>${project.artifactId}</name>

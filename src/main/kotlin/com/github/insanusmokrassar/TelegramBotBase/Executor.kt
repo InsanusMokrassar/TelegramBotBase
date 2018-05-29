@@ -121,7 +121,8 @@ class Executor(
     }
 
     fun handleUpdate(
-            config: CommonIObject<String, Any>
+            config: CommonIObject<String, Any>,
+            async: Boolean = false
     ) {
         try {
             println(config)
@@ -150,8 +151,9 @@ class Executor(
             }
 
             receiversManager.handle(
-                    command,
-                    resultConfig.asIObject()
+                command,
+                resultConfig.asIObject(),
+                async
             )
         } catch (e: Exception) {
             Logger.getGlobal().throwing(

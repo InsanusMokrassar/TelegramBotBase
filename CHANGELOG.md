@@ -8,3 +8,8 @@
 
 * Make Config to be open and available to be instantiated with custom list of configs
 * Fix work of BotIncomeMessagesListener
+
+## v0.7.2b
+
+* Update dependencies
+* Add possibility to choose async/sync mode of handling of commands

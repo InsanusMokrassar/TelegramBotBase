@@ -5,7 +5,7 @@
     
     <groupId>com.github.insanusmokrassar</groupId>
     <artifactId>TelegramBotBase</artifactId>
-    <version>0.7.2b</version>
+    <version>0.7.3b</version>
     <packaging>jar</packaging>
     
     <name>${project.artifactId}</name>
@@ -163,6 +163,7 @@
                     <sourceDirectories>
                         <dir>${project.build.sourceDirectory}</dir>
                     </sourceDirectories>
+                    <cacheRoot>default</cacheRoot>
                 </configuration>
             </plugin>
             <plugin>

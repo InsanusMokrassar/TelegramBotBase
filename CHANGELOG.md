@@ -13,3 +13,7 @@
 
 * Update dependencies
 * Add possibility to choose async/sync mode of handling of commands
+
+## v0.7.3b
+
+* Add possibility to configure updates requesting timeout

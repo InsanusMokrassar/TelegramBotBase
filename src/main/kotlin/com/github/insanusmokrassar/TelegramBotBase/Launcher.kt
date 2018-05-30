@@ -28,7 +28,8 @@ private class LauncherArgumentsParser(parser: ArgParser) {
 }
 
 open class Config(
-    val receiversConfigs: List<IObject<Any>> = emptyList()
+    val receiversConfigs: List<IObject<Any>> = emptyList(),
+    val updatesRequestingTimeout: Long = 1000L
 )
 
 fun main(args: Array<String>) {

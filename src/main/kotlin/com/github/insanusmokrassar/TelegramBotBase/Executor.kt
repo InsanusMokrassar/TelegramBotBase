@@ -1,5 +1,7 @@
 package com.github.insanusmokrassar.TelegramBotBase
 
+import com.github.insanusmokrassar.BotIncomeMessagesListener.BotIncomeMessagesListener
+import com.github.insanusmokrassar.BotIncomeMessagesListener.UpdateCallback
 import com.github.insanusmokrassar.ConfigsRemapper.ReceiversManager
 import com.github.insanusmokrassar.IObjectK.exceptions.ReadException
 import com.github.insanusmokrassar.IObjectK.extensions.remap
@@ -18,8 +20,6 @@ import com.github.insanusmokrassar.TelegramBotBase.tables.ChatsAdmins
 import com.github.insanusmokrassar.TelegramBotBase.tables.ChatsConfigs
 import com.github.insanusmokrassar.TelegramBotBase.tables.ChatsLanguages
 import com.github.insanusmokrassar.TelegramBotBase.tables.QueryDatas
-import com.github.insanusmokrassar.TelegramBotBase.utils.BotIncomeMessagesListener
-import com.github.insanusmokrassar.TelegramBotBase.utils.UpdateCallback
 import com.github.insanusmokrassar.TelegramBotBase.utils.load
 import com.pengrad.telegrambot.TelegramBot
 import kotlinx.coroutines.experimental.async
@@ -58,14 +58,15 @@ private fun CommonIObject<String, Any>.asIObject(): IObject<Any> {
     }
 }
 
-private class DefaultOnUpdateListener(
+private class DefaultOnUpdateListener<T>(
         private val executor: Executor,
         command: String
-) : UpdateCallback {
+) : UpdateCallback<T> {
+
     private val commandConfig = CommandConfig(command).toIObject()
-    override fun invoke(updateId: Int, message: IObject<Any>) {
+    override fun invoke(updateId: Int, message: IObject<Any>, base: T) {
         executor.handleUpdate(
-                message + commandConfig
+            message + commandConfig
         )
     }
 }

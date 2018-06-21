@@ -5,7 +5,7 @@
     
     <groupId>com.github.insanusmokrassar</groupId>
     <artifactId>TelegramBotBase</artifactId>
-    <version>0.7.3b</version>
+    <version>0.8.0b</version>
     <packaging>jar</packaging>
     
     <name>${project.artifactId}</name>
@@ -227,13 +227,19 @@
         <dependency>
             <groupId>com.github.insanusmokrassar</groupId>
             <artifactId>IObjectK</artifactId>
-            <version>1.11.2</version>
+            <version>1.11.3</version>
         </dependency>
 
         <dependency>
             <groupId>com.github.insanusmokrassar</groupId>
             <artifactId>IObjectKRealisations</artifactId>
             <version>1.11.1</version>
+        </dependency>
+
+        <dependency>
+            <groupId>com.github.insanusmokrassar</groupId>
+            <artifactId>BotIncomeMessagesListener</artifactId>
+            <version>0.3b</version>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/org.jetbrains.exposed/exposed -->

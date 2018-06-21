@@ -17,3 +17,8 @@
 ## v0.7.3b
 
 * Add possibility to configure updates requesting timeout
+
+## v0.8.0b
+
+* Removed BotIncomeMessagesListener
+* Added external dependency `com.github.insanusmokrassar:BotIncomeMessagesListener:0.3b`

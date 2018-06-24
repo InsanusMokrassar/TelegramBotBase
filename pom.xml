@@ -5,7 +5,7 @@
     
     <groupId>com.github.insanusmokrassar</groupId>
     <artifactId>TelegramBotBase</artifactId>
-    <version>0.8.0b</version>
+    <version>0.8.1b</version>
     <packaging>jar</packaging>
     
     <name>${project.artifactId}</name>
@@ -32,8 +32,8 @@
 
     <properties>
         <project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
-        <kotlin.version>1.2.41</kotlin.version>
-        <kotlin.coroutines.version>0.22.5</kotlin.coroutines.version>
+        <kotlin.version>1.2.50</kotlin.version>
+        <kotlin.coroutines.version>0.23.0</kotlin.coroutines.version>
         <dokka.version>0.9.16</dokka.version>
         <gpg.version>1.6</gpg.version>
         <assembly.version>2.6</assembly.version>

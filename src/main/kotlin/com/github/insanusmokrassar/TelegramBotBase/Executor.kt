@@ -58,16 +58,23 @@ private fun CommonIObject<String, Any>.asIObject(): IObject<Any> {
     }
 }
 
+private typealias CommandFilter = (CommonIObject<String, Any>) -> Boolean
+
 private class DefaultOnUpdateListener<T>(
         private val executor: Executor,
-        command: String
+        command: String,
+        private val filter: CommandFilter
 ) : UpdateCallback<T> {
 
     private val commandConfig = CommandConfig(command).toIObject()
     override fun invoke(updateId: Int, message: IObject<Any>, base: T) {
-        executor.handleUpdate(
-            message + commandConfig
-        )
+        val config = message + commandConfig
+
+        if (filter(config)) {
+            executor.handleUpdate(
+                config
+            )
+        }
     }
 }
 
@@ -80,6 +87,7 @@ class Executor(
         isDebug: Boolean = false,
         onBotInit: ((TelegramBot) -> Unit)? = null,
         baseHandleIObject: IObject<Any>? = null,
+        private val filter: CommandFilter? = null,
         vararg additionalExposedDatabases: Table
 ) {
     private val bot = TelegramBot.Builder(token).apply {
@@ -89,17 +97,18 @@ class Executor(
         updateListenerSleep(config.updatesRequestingTimeout)
     }.build().also {
         bot ->
+        val filterObject = filter ?: { true }
         BotIncomeMessagesListener(
                 bot,
-                DefaultOnUpdateListener(this, "onMessage"),
-                DefaultOnUpdateListener(this, "onMessageEdited"),
-                DefaultOnUpdateListener(this, "onChannelPost"),
-                DefaultOnUpdateListener(this, "onChannelPostEdited"),
-                DefaultOnUpdateListener(this, "onInlineQuery"),
-                DefaultOnUpdateListener(this, "onChosenInlineResult"),
-                DefaultOnUpdateListener(this, "onCallbackQuery"),
-                DefaultOnUpdateListener(this, "onShippingQuery"),
-                DefaultOnUpdateListener(this, "onPreCheckoutQuery")
+                DefaultOnUpdateListener(this, "onMessage", filterObject),
+                DefaultOnUpdateListener(this, "onMessageEdited", filterObject),
+                DefaultOnUpdateListener(this, "onChannelPost", filterObject),
+                DefaultOnUpdateListener(this, "onChannelPostEdited", filterObject),
+                DefaultOnUpdateListener(this, "onInlineQuery", filterObject),
+                DefaultOnUpdateListener(this, "onChosenInlineResult", filterObject),
+                DefaultOnUpdateListener(this, "onCallbackQuery", filterObject),
+                DefaultOnUpdateListener(this, "onShippingQuery", filterObject),
+                DefaultOnUpdateListener(this, "onPreCheckoutQuery", filterObject)
         )
         onBotInit ?. invoke(bot)
     }

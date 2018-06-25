@@ -239,7 +239,7 @@
         <dependency>
             <groupId>com.github.insanusmokrassar</groupId>
             <artifactId>BotIncomeMessagesListener</artifactId>
-            <version>0.3b</version>
+            <version>0.4b</version>
         </dependency>
 
         <!-- https://mvnrepository.com/artifact/org.jetbrains.exposed/exposed -->

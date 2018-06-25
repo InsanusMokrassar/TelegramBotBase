@@ -27,3 +27,7 @@
 
 * Added filter parameter into `Executor` constructor - now you can choose what to handle in
 your receivers
+
+### v0.8.2b
+
+

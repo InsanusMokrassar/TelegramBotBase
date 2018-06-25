@@ -22,7 +22,7 @@ import com.github.insanusmokrassar.TelegramBotBase.tables.ChatsLanguages
 import com.github.insanusmokrassar.TelegramBotBase.tables.QueryDatas
 import com.github.insanusmokrassar.TelegramBotBase.utils.load
 import com.pengrad.telegrambot.TelegramBot
-import kotlinx.coroutines.experimental.async
+import kotlinx.coroutines.experimental.*
 import org.jetbrains.exposed.sql.Database
 import org.jetbrains.exposed.sql.SchemaUtils
 import org.jetbrains.exposed.sql.Table
@@ -97,20 +97,23 @@ class Executor(
         updateListenerSleep(config.updatesRequestingTimeout)
     }.build().also {
         bot ->
+        onBotInit ?. invoke(bot)
+
         val filterObject = filter ?: { true }
         BotIncomeMessagesListener(
-                bot,
-                DefaultOnUpdateListener(this, "onMessage", filterObject),
-                DefaultOnUpdateListener(this, "onMessageEdited", filterObject),
-                DefaultOnUpdateListener(this, "onChannelPost", filterObject),
-                DefaultOnUpdateListener(this, "onChannelPostEdited", filterObject),
-                DefaultOnUpdateListener(this, "onInlineQuery", filterObject),
-                DefaultOnUpdateListener(this, "onChosenInlineResult", filterObject),
-                DefaultOnUpdateListener(this, "onCallbackQuery", filterObject),
-                DefaultOnUpdateListener(this, "onShippingQuery", filterObject),
-                DefaultOnUpdateListener(this, "onPreCheckoutQuery", filterObject)
-        )
-        onBotInit ?. invoke(bot)
+            DefaultOnUpdateListener(this, "onMessage", filterObject),
+            DefaultOnUpdateListener(this, "onMessageEdited", filterObject),
+            DefaultOnUpdateListener(this, "onChannelPost", filterObject),
+            DefaultOnUpdateListener(this, "onChannelPostEdited", filterObject),
+            DefaultOnUpdateListener(this, "onInlineQuery", filterObject),
+            DefaultOnUpdateListener(this, "onChosenInlineResult", filterObject),
+            DefaultOnUpdateListener(this, "onCallbackQuery", filterObject),
+            DefaultOnUpdateListener(this, "onShippingQuery", filterObject),
+            DefaultOnUpdateListener(this, "onPreCheckoutQuery", filterObject)
+        ) .let {
+            updatesListener ->
+            bot.setUpdatesListener(updatesListener)
+        }
     }
 
     private val receiversManager = ReceiversManager(
